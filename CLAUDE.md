@@ -73,6 +73,7 @@ Git repo: `Triple-J-Gaming/JJJ_GSE_WARLOCK` on GitHub. GSE source is not committ
 ### Rules for integration work
 
 - **Verify against the *installed* GSE, not only repo HEAD.** The cloned repo (`cfc7e5cf`) is newer than the user's GSE 3.3.34 (`D:\Gaming\World of Warcraft\_retail_\Interface\AddOns\GSE*`), and they differ. E.g. 3.3.34 variables are flat (`funct` at the top level, no `Versions`). A nil `funct` errors inside GSE's unprotected OOC queue loop and drops every queued item after it (bug hit 2026-10-03, fixed in addon 0.1.1 by shipping both shapes).
+- **GSE's Plugins panel can't list this addon (GSE 3.3.34).** GSE_Options builds the panel once at its own ADDON_LOADED, from `GSE.AddInPacks` at that moment. WoW loads `GSE_Options` before `JJJ_GSE_WARLOCK` (alphabetical after dependencies), so we register too late and our Restore buttons never appear. Packs named `GSE3-*` sort earlier and do appear. To restore a sequence, bump the addon version (re-imports everything).
 - **Register one encoded entry per sequence, keyed by name.** GSE's Options → Plugins panel builds a **Restore** button per name in `sequencenames`, looks up `sequencetable[name]`, and calls `GSE.DecodeMessage` on it (strings only). Since 2026-10-03 the addon encodes each single-sequence COLLECTION itself with the public `C_EncodingUtil` pipeline (same as `GSE.EncodeMessage`, which is private). Never emit `!GSE3!+`.
 - **Every Action needs lowercase `type = "macro"`.** GSE 3.3.34's editor (`GSE_GUI/Editor.lua` ~5323) treats a typeless action as new and sets `macro = ""`, so the steps showed empty in `/gse` (fixed in addon 0.1.2). The compiler infers the type, but the editor doesn't. Compare new data shapes against the user's own stored sequences: decode `WTF/Account/<id>/SavedVariables/GSE.lua` blobs (base64 → zlib → CBOR).
 
@@ -187,7 +188,7 @@ Leave placeholders until confirmed. Level 90 / Midnight abilities differ from ol
 8. ~~**Grimoire: Fel Ravager vs. Grimoire: Imp Lord**~~ Resolved: user has **Grimoire: Imp Lord** (in-game). Existing `DEMO_DIABOLIST` lines casting Fel Ravager must change to Imp Lord.
 
 ### Next Steps
-1. **Restore JJJ_AOE** (user deleted it by accident): `/reload` (no version bump, so nothing auto-imports), then GSE Options → Plugins → JJJ GSE Warlock → **Restore** next to JJJ_AOE → confirm on the collection review page. This is also the first in-game test of the per-name encoded entries.
+1. **Restore JJJ_AOE via 0.1.3 version bump** (user deleted it by accident). `/reload` re-imports all four: JJJ_AOE comes back as new; pick **Replace** in the compare window for the other three.
 2. Addon 0.1.2 **verified in-game** (2026-10-03): sequences import with their macro text visible in `/gse`; `JJJ_AutoTarget` shows its code. Still to check: compiled steps show `/targetenemy` outside arena.
 3. **Known for future updates:** bumping the addon version re-imports, and GSE 3.3.34 opens its compare window (merge/replace/ignore) for every sequence that already exists. `RegisterAddon` passes no force-replace, so the user picks **Replace** each time. Consider whether updates need a smoother path.
 4. Watch for: compare/merge dialogs on import; the variable not compiling for the sequences (GSE lazy-loads variables listed in `MetaData.Dependencies.Variables`, which should be computed on save, **needs verification**).
