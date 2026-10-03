@@ -96,11 +96,26 @@ Leave placeholders until confirmed. Level 90 / Midnight abilities differ from ol
 - **Talent Build:** Import string:
   `CoQAMrNP5kak+EBqLfUa3dMm+uMmxMjmlZGLMzMLDAAAAAAwYZZGzMDbGGmZb2ahmxiZmZsNLzMzwAAzMGzMzMYmZmZmxsBAAGzwYYMLDDYA`
   Points: Warlock 34/34, Demonology 34/34, Hero 13/13. Talents read from the Wowhead calc DOM (for choice nodes `[c]`, the chosen side: **needs verification** in-game):
-  - *Spec tree:* Hand of Gul'dan, Demoniac, Call Dreadstalkers, Fel Intellect, Dreadlash, Imp-erator, Power Siphon [c], Summon Felguard, Infernal Rapidity, Rune of Shadows, Carnivorous Stalkers, Imp Gang Boss, Inner Demons, Summon Demonic Tyrant, Blighted Maw, Tyrant's Oblation, Antoran Armaments, Flametouched, Sacrificed Souls, Reign of Tyranny, Master Summoner, Demonic Calling, Hellbent Commander, Grimoire: Fel Ravager [c], Summon Vilefiend, Stabilized Portals, Mark of F'harg [c], Dominion of Argus.
+  - *Spec tree:* Hand of Gul'dan, Demoniac, Call Dreadstalkers, Fel Intellect, Dreadlash, Imp-erator, Power Siphon [c], Summon Felguard, Infernal Rapidity, Rune of Shadows, Carnivorous Stalkers, Imp Gang Boss, Inner Demons, Summon Demonic Tyrant, Blighted Maw, Tyrant's Oblation, Antoran Armaments, Flametouched, Sacrificed Souls, Reign of Tyranny, Master Summoner, Demonic Calling, Hellbent Commander, Grimoire: Imp Lord [c, confirmed in-game; Wowhead DOM showed Fel Ravager], Summon Vilefiend, Stabilized Portals, Mark of F'harg [c], Dominion of Argus.
   - *Hero tree (Diabolist):* Diabolic Ritual, Cloven Souls, Touch of Rancora, Secrets of the Coven, Diabolic Oculi, Annihilan's Bellow [c], Infernal Machine [c], Infernal Bulwark [c], Looks That Kill, Flames of Xoroth, Abyssal Dominion, Gloom of Nathreza, Mind's Eyes, Ruination.
-  - *Class tree:* Fel Domination, Soul Leech, Demon Skin, Fel Armor, Demonic Embrace, Horrify [c], Demonic Fortitude, Curse of Exhaustion, Infernal Beneficiary, Mortal Coil, Pact of the Annihilan, Demonic Circle, Pact of the Satyr, Improved Mortal Coil, Dark Pact, Foul Mouth, Empowered Healthstone, Abyss Walker, Teachings of the Black Harvest, Gorefiend's Avarice, Frequent Donor [c], Pact of the Eredar, Demonic Resilience, Dark Accord [c], Demonic Gateway, Shadowfury [c], Soul Link, Frequent Traveler, Oppressive Darkness, Pact of Gluttony, Soulburn, Blight of Tongues [c].
+  - *Class tree:* Fel Domination, Soul Leech, Demon Skin, Fel Armor, Demonic Embrace, Horrify [c], Demonic Fortitude, Curse of Exhaustion, Infernal Beneficiary, Mortal Coil, Pact of the Annihilan, Demonic Circle, Pact of the Satyr, Improved Mortal Coil, Dark Pact, Foul Mouth, Empowered Healthstone, Abyss Walker, Teachings of the Black Harvest, Gorefiend's Avarice, Frequent Donor [c], Pact of the Eredar, Demonic Resilience, Dark Accord [c], Demonic Gateway, Howl of Terror [c, confirmed via spellbook; Wowhead DOM showed Shadowfury], Soul Link, Frequent Traveler, Oppressive Darkness, Pact of Gluttony, Soulburn, Blight of Tongues [c].
 - **PvP Talents:** Nether Ward, Call Fel Lord (user said "Summon Fel Lord"; the Demonology PvP guide names it **Call Fel Lord**, so confirm the exact in-game spell name before using it in `/cast`), Gateway Mastery.
   - Nether Ward = 3s spell reflect (vs casters, magical interrupts). Call Fel Lord = melee stun ring (guide suggests swapping it in for Nether Ward vs melee). Gateway Mastery = passive, adds +20yd gateway range and a shorter gateway debuff, so it needs no macro line.
+- **Castable spells (user's spellbook, 2026-10-03):**
+  - *Demonology:* Call Dreadstalkers, Grimoire: Imp Lord, Power Siphon, Demonbolt, Hand of Gul'dan, Summon Demonic Tyrant.
+  - *Warlock:* Axe Toss (Command Demon), Blight of Tongues, Create Healthstone, Create Soulwell, Curse of Exhaustion, Curse of Weakness, Dark Pact, Demonic Circle (+ Teleport), Demonic Gateway, Drain Life, Eye of Kilrogg, Fear, Fel Domination, Howl of Terror, Mortal Coil, Ritual of Doom, Ritual of Summoning, Shadow Bolt, Soulburn, Soulstone, Subjugate Demon, Summon Demon, Unending Breath, Unending Resolve.
+  - **Not castable:** Summon Vilefiend, Implosion (no Implosion means the AoE button needs a different spender, so design from this list only). Page 2 of the spellbook (not seen) may hold more.
+- **Pets:**
+  - **Main pet: Felguard** (Summon Felguard talent, cast via *Summon Demon*). Summon it before combat. Its *Command Demon* ability is **Axe Toss** (stun), which stays on a manual key as CC. **Auto re-summon (decided):** every damage button's KeyPress carries
+    ```
+    /cast [nopet] Fel Domination
+    /cast [nopet] Summon Felguard
+    ```
+    With a pet alive, both lines fail their `[nopet]` check and the step's normal action runs. With no pet, Fel Domination fires if it's off cooldown (otherwise the line silently fails), then the summon takes that press's GCD attempt. Budget: ~62 chars of the 255.
+    - **Verified in-game (2026-10-03):** Fel Domination is off the GCD; `/cast Summon Felguard` works by name.
+    - **Decided:** the summon is **not** gated on Fel Domination. If it's on cooldown, the button still starts the slow (full cast time) summon.
+  - **Grimoire: Imp Lord** is an **in-combat** temporary summon on cooldown. It belongs in the Burst button, not as a resting pet.
+  - Felguard pet-bar abilities (e.g. Felstorm) and whether they can be cast from a GSE line: **needs verification** in-game.
 - **Key PvP Abilities:** [LIST PRIORITY ABILITIES AND WHY]
 - **Trinkets** (Wowhead tooltips, ilvl 331):
   - Venomous Aspirant's Badge of Ferocity (item 270559): **on-use**, +461 primary stat for 15s, 1 min cooldown. Equipped in **slot 13** (top), so sequences use `/use 13`.
@@ -108,10 +123,10 @@ Leave placeholders until confirmed. Level 90 / Midnight abilities differ from ol
 - **Playstyle Preferences:**
   - **One button per situation.** Four sequences, each on its own key:
     1. **Single-target damage**: main priority loop, with `/use 13` and `/petattack`.
-    2. **Burst / go**: Demonic Tyrant, Grimoire: Fel Ravager, Badge of Ferocity (`/use 13`), then a damage dump.
+    2. **Burst / go**: Demonic Tyrant, Grimoire: Imp Lord, Badge of Ferocity (`/use 13`), then a damage dump.
     3. **AoE / multi-target**: for battlegrounds and stacked enemies.
     4. **Defensive**: cycles defensive tools (Dark Pact, healthstone, etc.).
-  - Other CC (Nether Ward, Call Fel Lord, Mortal Coil, Shadowfury, Fear) stays on manual keys unless the user decides otherwise.
+  - Other CC (Nether Ward, Call Fel Lord, Mortal Coil, Howl of Terror, Fear, Axe Toss) stays on manual keys unless the user decides otherwise.
   - **Auto-target outside Arena only.** Include `/targetenemy` (and `/petattack`) everywhere except arenas, where the user picks targets manually.
     - Planned implementation: a GSE **If** block driven by a GSE Variable that returns true when `select(2, IsInInstance()) == "arena"`. If blocks re-evaluate on instance change (`GSE_Reference.md` §If), so entering or leaving an arena flips the branch. Exact GSE Variable format and whether If accepts a boolean-returning Lua variable: **needs verification** in GSE source.
 - **Keybinds:** No custom keybinds yet; default WoW binds only. Sequence key, modifier usage and press rate: not chosen yet.
@@ -145,9 +160,9 @@ Leave placeholders until confirmed. Level 90 / Midnight abilities differ from ol
 3. ~~**How can a third-party addon create or modify GSE sequences/variables?**~~ Resolved: only via `GSE.RegisterAddon` (see GSE Integration Reference). Imports run on first load/version change; collisions prompt the user.
 4. ~~**GSE import/export string format**~~ Resolved: `!GSE3!` + Base64(Compress(CBOR({name, sequence}))). Still open: the sequence table schema (`MetaData`, `Versions`, block layout) — read `GSE/API/Storage.lua` and `spec/` before generating sequences.
 5. ~~**`.toc` details**~~ Resolved: `## Interface: 120100`; `## Dependencies: GSE, GSE_Utils`.
-6. **Summon Vilefiend in Midnight** — the PvP guide says it can no longer be cast (merged into Call Dreadstalkers), but the user's build takes the *Summon Vilefiend* talent node on Wowhead's 12.1 calc. Check in-game whether it's a castable spell or a passive modifier before keeping `/cast Summon Vilefiend` lines.
-7. **Single-Button Assistant** — used as filler in the `.lua` design. Confirm it's usable in rated PvP and inside a GSE macro line (needs verification).
-8. **Grimoire: Fel Ravager vs. Grimoire: Imp Lord** — the build's choice node is labelled Grimoire: Fel Ravager (matches the sequences); confirm the chosen side in-game.
+6. ~~**Summon Vilefiend in Midnight**~~ Resolved: not in the user's spellbook (screenshot 2026-10-03), so it's passive or merged. Remove every `/cast Summon Vilefiend` line from the sequence designs.
+7. ~~**Single-Button Assistant**~~ Resolved: user confirms it works in PvP and inside GSE.
+8. ~~**Grimoire: Fel Ravager vs. Grimoire: Imp Lord**~~ Resolved: user has **Grimoire: Imp Lord** (in-game). Existing `DEMO_DIABOLIST` lines casting Fel Ravager must change to Imp Lord.
 
 ### Next Steps
 1. Verify the GSE sequence table schema and Variable format (Open Question 4 remainder + arena If-block variable).
