@@ -37,8 +37,11 @@ local TRINKET_LINE = "/use [combat] 13"   -- Badge of Ferocity, slot 13
 local FELSTORM_LINE = "/use Felstorm"      -- user-verified syntax
 
 -- Builds one Action block from macro lines.
+-- `type = "macro"` is required: GSE 3.3.34's editor (GSE_GUI/Editor.lua) treats
+-- an action with no lowercase `type` as new and blanks its macro text. The
+-- compiler infers the type, but the editor doesn't.
 local function MakeAction(...)
-    return { Type = "Action", macro = table.concat({ ... }, "\n") }
+    return { Type = "Action", type = "macro", macro = table.concat({ ... }, "\n") }
 end
 
 -- Builds a Loop block holding one Action per entry in action_lines.
@@ -63,6 +66,10 @@ local function MakeSequence(name, notes, loop, gse_version)
             ClassID = CLASS_ID_WARLOCK,
             Default = 1,
             GSEVersion = gse_version,
+            -- Client TOC (e.g. 120100). GSE warns "not specifically designed for
+            -- this version of the game" on import when this is missing or from
+            -- another expansion (GSE.TOCFlavour compares floor(toc / 10000)).
+            TOC = select(4, GetBuildInfo()),
             Author = AUTHOR,
             Notes = notes,
         },
