@@ -25,6 +25,7 @@ Persistent project brief. Read this first every session; update **Project State*
 | `Demo_Diabolist_GSE.txt` | Hand-build instructions for a 13-action Priority loop (Demonology). Has a known Tyrant-starvation problem (see `GSE_Reference.md` §2b). |
 | `Demonology_Warlock_PvP_Guide.md` | Demonology PvP summary (Icy Veins, 12.1). |
 | `affliction-warlock/` | Affliction PvP summary (12.1). |
+| `Sequence_Design.md` | **Finalized v1** design of the four buttons (ST, BURST, AOE, DEF), with char budgets. Source for the addon's sequence data. |
 | `destruction-warlock/` | Destruction PvP + PvE guide set (12.1), including PvP macros and talents. |
 
 Git repo: `Triple-J-Gaming/JJJ_GSE_WARLOCK` on GitHub. GSE source is not committed here; in cloud sessions it is cloned read-only to `/home/user/timothyluke/gse-advanced-macro-compiler` (GSE-Advanced-Macro-Compiler).
@@ -59,7 +60,7 @@ Git repo: `Triple-J-Gaming/JJJ_GSE_WARLOCK` on GitHub. GSE source is not committ
   ```
   - Blocks: `{Type="Action", macro="/cast X
 /cast Y"}`; `{Type="Loop", Repeat="1", StepFunction=<Priority|Sequential>, ...blocks}`; `{Type="If", Variable="<lua expr>", [1]={...true blocks}, [2]={...false blocks}}`; `Repeat` uses `Interval`; `Pause` uses `Clicks` or `MS`.
-  - **No KeyPress/KeyRelease in GSE 3.** `GSE.CompileTemplate` compiles only `Version.Actions`; KeyPress/KeyRelease appear only as legacy import keys. Lines meant to run on every press (pet attack, re-summon, trinket, auto-target) must go inside each Action's `macro` text. The 255-char budget is per Action macro. `GSE_Reference.md` still describes KeyPress/KeyRelease and needs correcting.
+  - **No KeyPress/KeyRelease in GSE 3.** `GSE.CompileTemplate` compiles only `Version.Actions`; KeyPress/KeyRelease appear only as legacy import keys. Lines meant to run on every press (pet attack, re-summon, trinket, auto-target) must go inside each Action's `macro` text. The 255-char budget is per Action macro. `GSE_Reference.md` has been corrected to match (2026-10-03).
   - Old sequences are blocked. Import rejects `GSEVersion <= 3200` or `> installed`, and on load (retail) GSE **disables** sequences whose `GSEVersion < floor(installed/100)*100`. Our addon must stamp `MetaData.GSEVersion` from `C_AddOns.GetAddOnMetadata("GSE","Version")` parsed as `major*1000 + minor*100 + patch` (`GSE.ParseVersion`).
   - Ship via `RegisterAddon` as a **COLLECTION** so imports run with `skipDialogs`. A single sequence with no checksum triggers GSE's integrity confirm dialog.
 - **Macro-text Lua evaluation (verified, `GSE.CompileMacroText`):** any macro line starting with `=` is evaluated as Lua at compile time, in an env where `GSE` is the private namespace (so `GSE.inArena`, `GSE.PVPFlag`, `GSE.V.*` work). The result replaces the line; empty lines are dropped. Recompile happens on zone/instance change.
@@ -135,7 +136,7 @@ Leave placeholders until confirmed. Level 90 / Midnight abilities differ from ol
   - Venomous Aspirant's Insignia of Alacrity (item 270558): **passive** proc, chance on spell for +389 primary stat for 20s. No macro line needed.
 - **Playstyle Preferences:**
   - **One button per situation.** Four sequences, each on its own key:
-    1. **Single-target damage**: main priority loop, with `/use 13` and `/petattack`.
+    1. **Single-target damage**: main priority loop with `/petattack` (trinket moved to Burst only, see `Sequence_Design.md`).
     2. **Burst / go**: Demonic Tyrant, Grimoire: Imp Lord, Badge of Ferocity (`/use 13`), then a damage dump.
     3. **AoE / multi-target**: for battlegrounds and stacked enemies.
     4. **Defensive**: cycles defensive tools (Dark Pact, healthstone, etc.).
@@ -178,9 +179,9 @@ Leave placeholders until confirmed. Level 90 / Midnight abilities differ from ol
 8. ~~**Grimoire: Fel Ravager vs. Grimoire: Imp Lord**~~ Resolved: user has **Grimoire: Imp Lord** (in-game). Existing `DEMO_DIABOLIST` lines casting Fel Ravager must change to Imp Lord.
 
 ### Next Steps
-1. Correct `GSE_Reference.md` (remove KeyPress/KeyRelease; document `=` Lua lines, GSEVersion gate, Arena context).
-2. Design the four sequences (spell priority per button, 255-char step budget).
-3. Scaffold the addon folder + `.toc` + core Lua file with GSE presence check.
+1. Scaffold `JJJ_GSE_WARLOCK/` (`.toc` with `## Interface: 120100`, `## Dependencies: GSE, GSE_Utils`) + core Lua with a GSE presence check.
+2. Encode `Sequence_Design.md` v1 as Lua tables (schema in GSE Integration Reference), stamp `GSEVersion`, ship as a COLLECTION via `GSE.RegisterAddon`.
+3. Test in-game: import, arena/non-arena auto-target, re-summon, per-step char counts.
 
 ---
 
