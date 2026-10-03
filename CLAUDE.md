@@ -99,11 +99,22 @@ Leave placeholders until confirmed. Level 90 / Midnight abilities differ from ol
   - *Spec tree:* Hand of Gul'dan, Demoniac, Call Dreadstalkers, Fel Intellect, Dreadlash, Imp-erator, Power Siphon [c], Summon Felguard, Infernal Rapidity, Rune of Shadows, Carnivorous Stalkers, Imp Gang Boss, Inner Demons, Summon Demonic Tyrant, Blighted Maw, Tyrant's Oblation, Antoran Armaments, Flametouched, Sacrificed Souls, Reign of Tyranny, Master Summoner, Demonic Calling, Hellbent Commander, Grimoire: Fel Ravager [c], Summon Vilefiend, Stabilized Portals, Mark of F'harg [c], Dominion of Argus.
   - *Hero tree (Diabolist):* Diabolic Ritual, Cloven Souls, Touch of Rancora, Secrets of the Coven, Diabolic Oculi, Annihilan's Bellow [c], Infernal Machine [c], Infernal Bulwark [c], Looks That Kill, Flames of Xoroth, Abyssal Dominion, Gloom of Nathreza, Mind's Eyes, Ruination.
   - *Class tree:* Fel Domination, Soul Leech, Demon Skin, Fel Armor, Demonic Embrace, Horrify [c], Demonic Fortitude, Curse of Exhaustion, Infernal Beneficiary, Mortal Coil, Pact of the Annihilan, Demonic Circle, Pact of the Satyr, Improved Mortal Coil, Dark Pact, Foul Mouth, Empowered Healthstone, Abyss Walker, Teachings of the Black Harvest, Gorefiend's Avarice, Frequent Donor [c], Pact of the Eredar, Demonic Resilience, Dark Accord [c], Demonic Gateway, Shadowfury [c], Soul Link, Frequent Traveler, Oppressive Darkness, Pact of Gluttony, Soulburn, Blight of Tongues [c].
-- **PvP Talents:** [YOUR 3 PVP TALENTS HERE]
+- **PvP Talents:** Nether Ward, Call Fel Lord (user said "Summon Fel Lord"; the Demonology PvP guide names it **Call Fel Lord**, so confirm the exact in-game spell name before using it in `/cast`), Gateway Mastery.
+  - Nether Ward = 3s spell reflect (vs casters, magical interrupts). Call Fel Lord = melee stun ring (guide suggests swapping it in for Nether Ward vs melee). Gateway Mastery = passive, adds +20yd gateway range and a shorter gateway debuff, so it needs no macro line.
 - **Key PvP Abilities:** [LIST PRIORITY ABILITIES AND WHY]
-- **Trinkets:** [PRIMARY AND SECONDARY TRINKETS — and whether each is on-use (slot 13/14)]
-- **Playstyle Preferences:** [ROTATION STYLE, DEFENSIVE NEEDS, CC PRIORITY, ETC.]
-- **Keybinds:** [SEQUENCE KEY, MODIFIER USAGE, PRESS RATE IN MS]
+- **Trinkets** (Wowhead tooltips, ilvl 331):
+  - Venomous Aspirant's Badge of Ferocity (item 270559): **on-use**, +461 primary stat for 15s, 1 min cooldown. Equipped in **slot 13** (top), so sequences use `/use 13`.
+  - Venomous Aspirant's Insignia of Alacrity (item 270558): **passive** proc, chance on spell for +389 primary stat for 20s. No macro line needed.
+- **Playstyle Preferences:**
+  - **One button per situation.** Four sequences, each on its own key:
+    1. **Single-target damage**: main priority loop, with `/use 13` and `/petattack`.
+    2. **Burst / go**: Demonic Tyrant, Grimoire: Fel Ravager, Badge of Ferocity (`/use 13`), then a damage dump.
+    3. **AoE / multi-target**: for battlegrounds and stacked enemies.
+    4. **Defensive**: cycles defensive tools (Dark Pact, healthstone, etc.).
+  - Other CC (Nether Ward, Call Fel Lord, Mortal Coil, Shadowfury, Fear) stays on manual keys unless the user decides otherwise.
+  - **Auto-target outside Arena only.** Include `/targetenemy` (and `/petattack`) everywhere except arenas, where the user picks targets manually.
+    - Planned implementation: a GSE **If** block driven by a GSE Variable that returns true when `select(2, IsInInstance()) == "arena"`. If blocks re-evaluate on instance change (`GSE_Reference.md` §If), so entering or leaving an arena flips the branch. Exact GSE Variable format and whether If accepts a boolean-returning Lua variable: **needs verification** in GSE source.
+- **Keybinds:** No custom keybinds yet; default WoW binds only. Sequence key, modifier usage and press rate: not chosen yet.
 - **Current GSE Sequences:** [LIST SEQUENCES TO IMPORT OR BUILD UPON]
   - *In folder:* `DEMO_DIABOLIST` in two designs (`.lua` 5-action, `.txt` 13-action).
 
@@ -139,8 +150,8 @@ Leave placeholders until confirmed. Level 90 / Midnight abilities differ from ol
 8. **Grimoire: Fel Ravager vs. Grimoire: Imp Lord** — the build's choice node is labelled Grimoire: Fel Ravager (matches the sequences); confirm the chosen side in-game.
 
 ### Next Steps
-1. Fill in remaining Warlock Configuration (PvP talents, trinkets, playstyle, keybinds).
-2. Verify the GSE sequence table schema (Open Question 4 remainder).
+1. Verify the GSE sequence table schema and Variable format (Open Question 4 remainder + arena If-block variable).
+2. Design the four sequences (spell priority per button, 255-char step budget). Needs in-game answers to Open Questions 6–8 first.
 3. Scaffold the addon folder + `.toc` + core Lua file with GSE presence check.
 
 ---
