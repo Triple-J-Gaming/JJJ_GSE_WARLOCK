@@ -12,7 +12,7 @@ Persistent project brief. Read this first every session; update **Project State*
 
 **Language:** WoW addon Lua (retail, Midnight expansion, patch 12.1 — GSE 3.3+ assumed).
 
-**Addon name:** `[ADDON_NAME — not yet chosen]`. Used for the folder, `.toc`, function prefix, and SavedVariables. See Open Questions.
+**Addon name:** `JJJ_GSE_WARLOCK`. Used for the folder, `.toc`, function prefix, and SavedVariables.
 
 ---
 
@@ -27,7 +27,7 @@ Persistent project brief. Read this first every session; update **Project State*
 | `affliction-warlock/` | Affliction PvP summary (12.1). |
 | `destruction-warlock/` | Destruction PvP + PvE guide set (12.1), including PvP macros and talents. |
 
-No GSE source code is in the folder yet. No git repo yet.
+Git repo: `Triple-J-Gaming/JJJ_GSE_WARLOCK` on GitHub. GSE source is not committed here; in cloud sessions it is cloned read-only to `/home/user/timothyluke/gse-advanced-macro-compiler` (GSE-Advanced-Macro-Compiler).
 
 ---
 
@@ -64,7 +64,7 @@ No GSE source code is in the folder yet. No git repo yet.
 **Addon structure:** Addon folder at project root containing a `.toc` with the same name as the folder. Flat layout unless complexity demands subdirectories. Declare GSE as a required dependency in the `.toc` (exact dependency names and `## Interface:` number for 12.1: **needs verification**).
 
 **Naming:**
-- Functions: `PascalCase`, prefixed with the addon name (e.g. `AddonName_BuildSequence`) or attached to the addon's namespace table.
+- Functions: `PascalCase`, prefixed with the addon name (e.g. `JJJ_GSE_WARLOCK_BuildSequence`) or attached to the addon's namespace table.
 - Variables: `snake_case`.
 - Constants: `SCREAMING_SNAKE_CASE`.
 - No unintended globals — use the addon namespace (`local addon_name, ns = ...`).
@@ -108,14 +108,17 @@ Leave placeholders until confirmed. Level 90 / Midnight abilities differ from ol
 - No addon code exists yet. No addon folder, `.toc`, or Lua files.
 - Reference material is in place: `GSE_Reference.md`, two `DEMO_DIABOLIST` sequence designs, and PvP guides for all three specs.
 - `CLAUDE.md` created.
+- Git repo set up on GitHub. Root duplicates of the destruction guides removed.
+- Addon name chosen: `JJJ_GSE_WARLOCK`.
 
 ### Decisions Made
 - Plain `/cast` lines over `/castsequence` — castsequences stall when a spell is unavailable and `reset=<seconds>` doesn't work in GSE (`GSE_Reference.md` §5).
 - Priority-loop design from `Demo_Diabolist_GSE.lua` preferred over the 13-action `.txt` loop — the `.txt` loop leaves Tyrant at ~3% of presses (`GSE_Reference.md` §2).
 - Sequences are authored in-game / via GSE import strings; the addon will not load sequences from raw `.lua` files.
+- Addon name is `JJJ_GSE_WARLOCK` (folder, `.toc`, function prefix, SavedVariables).
 
 ### Open Questions
-1. **Addon name** — needed for folder, `.toc`, function prefix, SavedVariables.
+1. ~~**Addon name**~~ Resolved: `JJJ_GSE_WARLOCK`.
 2. **Spec and hero tree** — Demonology Diabolist (per sequences) vs. Soul Harvester (per PvP guide) vs. another spec. Blocks all sequence design.
 3. **How can a third-party addon create or modify GSE sequences/variables?** No create/update API is documented in `GSE_Reference.md`; only tracker events are. Needs GSE source (GSE-Advanced-Macro-Compiler repo) in the folder to verify. Fallback: addon generates import strings or build instructions for the user to paste into GSE. **Blocks core scope.**
 4. **GSE import/export string format** — needs verification from GSE source before the addon can produce strings.
@@ -126,11 +129,9 @@ Leave placeholders until confirmed. Level 90 / Midnight abilities differ from ol
 
 ### Next Steps
 1. Fill in Warlock Configuration (spec, hero tree, talents, trinkets, keybinds).
-2. Choose the addon name.
-3. Add GSE source (clone GSE-Advanced-Macro-Compiler) to the folder and answer Open Questions 3–5.
-4. Decide the addon's integration approach based on what GSE actually exposes (direct API vs. generated import strings vs. tracker-only).
-5. Scaffold the addon folder + `.toc` + core Lua file with GSE presence check.
-6. `git init` the project so each session's change is a reviewable commit.
+2. Answer Open Questions 3–5 from the cloned GSE source.
+3. Decide the addon's integration approach based on what GSE actually exposes (direct API vs. generated import strings vs. tracker-only).
+4. Scaffold the addon folder + `.toc` + core Lua file with GSE presence check.
 
 ---
 
