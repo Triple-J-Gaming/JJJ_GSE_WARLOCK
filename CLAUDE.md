@@ -47,6 +47,12 @@ Git repo: `Triple-J-Gaming/JJJ_GSE_WARLOCK` on GitHub. GSE source is not committ
   - A macro cannot `/click` a button that has macrotext. GSE cannot invent macro commands or conditionals.
   - No auto-clickers or key-repeat tools (Blizzard EULA). Mouse-wheel binds are allowed.
 - **Documented addon hooks** (`GSE_Reference.md` §10): AceEvent messages `GSE_SEQUENCE_ICON_UPDATE` (every click; sequence name + SpellInfo subset) and `GSE_MODS_VISIBLE` (sequence name + modifiers seen). Reference implementation: `GSE_Utils/Tracker.lua` in the GSE-Advanced-Macro-Compiler repo. **Callback argument shapes: needs verification** against that source.
+- **Public API surface (verified, GSE source `cfc7e5cf`, 2026-10-01):** GSE's namespace is addon-private. The global `_G.GSE` is a locked proxy exposing **only** `RegisterAddon`, `GetSequenceNamesFromLibrary`, `isEmpty` (`GSE/API/Plugins.lua`). `AddSequenceToCollection`, `ReplaceSequence`, `UpdateVariable`, `ImportSerialisedSequence`, `EncodeMessage` are internal — **not callable** from our addon.
+  - `GSE.RegisterAddon(name, version, sequencenames, sequencetable)`: on first load or when `version` changes, GSE runs `ImportSerialisedSequence(entry, false)` on each `sequencetable` entry, then reloads sequences. Collisions with existing sequences show GSE's import dialog (not force-replaced).
+  - An entry can be an import string or a table: `{name, sequence}`, or `{type = "COLLECTION", payload = {Sequences = {[name] = seq}, Variables = {[name] = var}, Macros = {...}}}` — so variables can ship inside a COLLECTION.
+  - `ImportSerialisedSequence` lives in `GSE_Utils`, so our `.toc` should declare `## Dependencies: GSE, GSE_Utils` to guarantee load order.
+- **Export string format (verified, `GSE/API/Serialisation.lua`):** `"!GSE3!" .. C_EncodingUtil.EncodeBase64(C_EncodingUtil.CompressString(C_EncodingUtil.SerializeCBOR(tab)))`, where a sequence export's `tab` is `{sequenceName, sequence}`. `!GSE3!+` is the sealed gse.tools format — never produce it. Sequence table schema (`MetaData`, `Versions`, …): **needs verification** from `GSE/API/Storage.lua` / `spec/` before generating sequences.
+- **`.toc` (verified):** GSE ships `## Interface: 11509, 16001, 20506, 50504, 120007, 120100` — **12.1 = `120100`**.
 - **Outdated — never use:** GS-Core addon packs, `GSImportLegacyMacroCollections`, `GSDisableSequence`, `Interface: 70100` (Legion-era, not in GSE 3).
 
 ### Rules for integration work
@@ -85,11 +91,14 @@ Git repo: `Triple-J-Gaming/JJJ_GSE_WARLOCK` on GitHub. GSE source is not committ
 
 Leave placeholders until confirmed. Level 90 / Midnight abilities differ from older expansions — verify from in-game data or notes, not assumptions.
 
-- **Spec:** [YOUR SPEC HERE]
-  - *Evidence in folder, not confirmed:* existing sequences are Demonology (Diabolist); guides exist for all three specs.
-- **Hero tree:** [YOUR HERO TREE HERE]
-  - *Conflict:* sequences are named Diabolist; the Demonology PvP guide recommends Soul Harvester as the only PvP build.
-- **Talent Build:** [YOUR TALENT CHOICES / IMPORT STRING HERE]
+- **Spec:** Demonology (spec ID 266). Confirmed from the user's loadout string.
+- **Hero tree:** Diabolist. Confirmed from the loadout (Wowhead, 2026-10-03). Note: the Demonology PvP guide recommends Soul Harvester; the user plays Diabolist.
+- **Talent Build:** Import string:
+  `CoQAMrNP5kak+EBqLfUa3dMm+uMmxMjmlZGLMzMLDAAAAAAwYZZGzMDbGGmZb2ahmxiZmZsNLzMzwAAzMGzMzMYmZmZmxsBAAGzwYYMLDDYA`
+  Points: Warlock 34/34, Demonology 34/34, Hero 13/13. Talents read from the Wowhead calc DOM (for choice nodes `[c]`, the chosen side: **needs verification** in-game):
+  - *Spec tree:* Hand of Gul'dan, Demoniac, Call Dreadstalkers, Fel Intellect, Dreadlash, Imp-erator, Power Siphon [c], Summon Felguard, Infernal Rapidity, Rune of Shadows, Carnivorous Stalkers, Imp Gang Boss, Inner Demons, Summon Demonic Tyrant, Blighted Maw, Tyrant's Oblation, Antoran Armaments, Flametouched, Sacrificed Souls, Reign of Tyranny, Master Summoner, Demonic Calling, Hellbent Commander, Grimoire: Fel Ravager [c], Summon Vilefiend, Stabilized Portals, Mark of F'harg [c], Dominion of Argus.
+  - *Hero tree (Diabolist):* Diabolic Ritual, Cloven Souls, Touch of Rancora, Secrets of the Coven, Diabolic Oculi, Annihilan's Bellow [c], Infernal Machine [c], Infernal Bulwark [c], Looks That Kill, Flames of Xoroth, Abyssal Dominion, Gloom of Nathreza, Mind's Eyes, Ruination.
+  - *Class tree:* Fel Domination, Soul Leech, Demon Skin, Fel Armor, Demonic Embrace, Horrify [c], Demonic Fortitude, Curse of Exhaustion, Infernal Beneficiary, Mortal Coil, Pact of the Annihilan, Demonic Circle, Pact of the Satyr, Improved Mortal Coil, Dark Pact, Foul Mouth, Empowered Healthstone, Abyss Walker, Teachings of the Black Harvest, Gorefiend's Avarice, Frequent Donor [c], Pact of the Eredar, Demonic Resilience, Dark Accord [c], Demonic Gateway, Shadowfury [c], Soul Link, Frequent Traveler, Oppressive Darkness, Pact of Gluttony, Soulburn, Blight of Tongues [c].
 - **PvP Talents:** [YOUR 3 PVP TALENTS HERE]
 - **Key PvP Abilities:** [LIST PRIORITY ABILITIES AND WHY]
 - **Trinkets:** [PRIMARY AND SECONDARY TRINKETS — and whether each is on-use (slot 13/14)]
@@ -110,28 +119,29 @@ Leave placeholders until confirmed. Level 90 / Midnight abilities differ from ol
 - `CLAUDE.md` created.
 - Git repo set up on GitHub. Root duplicates of the destruction guides removed.
 - Addon name chosen: `JJJ_GSE_WARLOCK`.
+- GSE source cloned locally to `GSE-Advanced-Macro-Compiler/` (git-ignored). Open Questions 3–5 answered from it.
 
 ### Decisions Made
 - Plain `/cast` lines over `/castsequence` — castsequences stall when a spell is unavailable and `reset=<seconds>` doesn't work in GSE (`GSE_Reference.md` §5).
 - Priority-loop design from `Demo_Diabolist_GSE.lua` preferred over the 13-action `.txt` loop — the `.txt` loop leaves Tyrant at ~3% of presses (`GSE_Reference.md` §2).
 - Sequences are authored in-game / via GSE import strings; the addon will not load sequences from raw `.lua` files.
 - Addon name is `JJJ_GSE_WARLOCK` (folder, `.toc`, function prefix, SavedVariables).
+- Integration path: deliver sequences/variables through `GSE.RegisterAddon` (the only write path GSE exposes to other addons). Bump the version argument to push updates.
 
 ### Open Questions
 1. ~~**Addon name**~~ Resolved: `JJJ_GSE_WARLOCK`.
-2. **Spec and hero tree** — Demonology Diabolist (per sequences) vs. Soul Harvester (per PvP guide) vs. another spec. Blocks all sequence design.
-3. **How can a third-party addon create or modify GSE sequences/variables?** No create/update API is documented in `GSE_Reference.md`; only tracker events are. Needs GSE source (GSE-Advanced-Macro-Compiler repo) in the folder to verify. Fallback: addon generates import strings or build instructions for the user to paste into GSE. **Blocks core scope.**
-4. **GSE import/export string format** — needs verification from GSE source before the addon can produce strings.
-5. **`.toc` details** — `## Interface:` number for 12.1 and exact GSE dependency names (`GSE`, `GSE_Utils`?) — needs verification.
-6. **Summon Vilefiend in Midnight** — the PvP guide says it can no longer be cast (merged into Call Dreadstalkers), but both existing sequences cast it. Needs in-game verification; likely dead lines.
+2. ~~**Spec and hero tree**~~ Resolved: Demonology Diabolist (user's loadout string).
+3. ~~**How can a third-party addon create or modify GSE sequences/variables?**~~ Resolved: only via `GSE.RegisterAddon` (see GSE Integration Reference). Imports run on first load/version change; collisions prompt the user.
+4. ~~**GSE import/export string format**~~ Resolved: `!GSE3!` + Base64(Compress(CBOR({name, sequence}))). Still open: the sequence table schema (`MetaData`, `Versions`, block layout) — read `GSE/API/Storage.lua` and `spec/` before generating sequences.
+5. ~~**`.toc` details**~~ Resolved: `## Interface: 120100`; `## Dependencies: GSE, GSE_Utils`.
+6. **Summon Vilefiend in Midnight** — the PvP guide says it can no longer be cast (merged into Call Dreadstalkers), but the user's build takes the *Summon Vilefiend* talent node on Wowhead's 12.1 calc. Check in-game whether it's a castable spell or a passive modifier before keeping `/cast Summon Vilefiend` lines.
 7. **Single-Button Assistant** — used as filler in the `.lua` design. Confirm it's usable in rated PvP and inside a GSE macro line (needs verification).
-8. **Grimoire: Fel Ravager vs. Grimoire: Imp Lord** — sequences use Fel Ravager; the PvP burst rotation uses Imp Lord. Depends on talent build.
+8. **Grimoire: Fel Ravager vs. Grimoire: Imp Lord** — the build's choice node is labelled Grimoire: Fel Ravager (matches the sequences); confirm the chosen side in-game.
 
 ### Next Steps
-1. Fill in Warlock Configuration (spec, hero tree, talents, trinkets, keybinds).
-2. Answer Open Questions 3–5 from the cloned GSE source.
-3. Decide the addon's integration approach based on what GSE actually exposes (direct API vs. generated import strings vs. tracker-only).
-4. Scaffold the addon folder + `.toc` + core Lua file with GSE presence check.
+1. Fill in remaining Warlock Configuration (PvP talents, trinkets, playstyle, keybinds).
+2. Verify the GSE sequence table schema (Open Question 4 remainder).
+3. Scaffold the addon folder + `.toc` + core Lua file with GSE presence check.
 
 ---
 
