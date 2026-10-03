@@ -180,7 +180,9 @@ Leave placeholders until confirmed. Level 90 / Midnight abilities differ from ol
 8. ~~**Grimoire: Fel Ravager vs. Grimoire: Imp Lord**~~ Resolved: user has **Grimoire: Imp Lord** (in-game). Existing `DEMO_DIABOLIST` lines casting Fel Ravager must change to Imp Lord.
 
 ### Next Steps
-1. Load-test the scaffold in-game (link `JJJ_GSE_WARLOCK/` into `World of Warcraft/_retail_/Interface/AddOns/`); expect "Loaded. GSE x.y.z detected." on login.
+1. Load-test the scaffold in-game; expect "Loaded. GSE 3.3.34 detected." on login.
+   - `JJJ_GSE_WARLOCK/` is junction-linked into `D:\Gaming\World of Warcraft\_retail_\Interface\AddOns\` (created 2026-10-03), so edits here apply after `/reload`.
+   - Installed GSE: **3.3.34** (GSEVersion 3334). Other installed packs (`GSE3-izzi_Warlock`, etc.) call `GSE.RegisterAddon` and are a real-world reference.
 2. Encode `Sequence_Design.md` v1 as Lua tables (schema in GSE Integration Reference), stamp `GSEVersion`, ship as a COLLECTION via `GSE.RegisterAddon` (variables need `objectType = "VARIABLE"` inside the collection, or GSE treats them as sequences).
 3. Test in-game: import, arena/non-arena auto-target, re-summon, per-step char counts.
 
