@@ -6,3 +6,4 @@
 ## Dependencies: GSE, GSE_Utils
 
 Core.lua
+Sequences.lua

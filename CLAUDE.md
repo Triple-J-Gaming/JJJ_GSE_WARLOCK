@@ -26,7 +26,7 @@ Persistent project brief. Read this first every session; update **Project State*
 | `Demonology_Warlock_PvP_Guide.md` | Demonology PvP summary (Icy Veins, 12.1). |
 | `affliction-warlock/` | Affliction PvP summary (12.1). |
 | `Sequence_Design.md` | **Finalized v1** design of the four buttons (ST, BURST, AOE, DEF), with char budgets. Source for the addon's sequence data. |
-| `JJJ_GSE_WARLOCK/` | The addon. `Core.lua` = namespace, chat print, GSE checks, version parsing. |
+| `JJJ_GSE_WARLOCK/` | The addon. `Core.lua` = GSE checks, version parsing, registration. `Sequences.lua` = sequence/variable data built from `Sequence_Design.md`. |
 | `destruction-warlock/` | Destruction PvP + PvE guide set (12.1), including PvP macros and talents. |
 
 Git repo: `Triple-J-Gaming/JJJ_GSE_WARLOCK` on GitHub. GSE source is not committed here; in cloud sessions it is cloned read-only to `/home/user/timothyluke/gse-advanced-macro-compiler` (GSE-Advanced-Macro-Compiler).
@@ -155,7 +155,10 @@ Leave placeholders until confirmed. Level 90 / Midnight abilities differ from ol
 ### Current Status
 *Last updated: 2026-10-03 (session 1).*
 
-- Addon scaffold exists: `JJJ_GSE_WARLOCK/` with `.toc` (Interface 120100, deps GSE + GSE_Utils) and `Core.lua` (GSE presence/version check on `PLAYER_LOGIN`). Not yet tested in-game; no Lua toolchain on this machine to syntax-check.
+- Addon `JJJ_GSE_WARLOCK/`: `.toc` (Interface 120100, deps GSE + GSE_Utils), `Core.lua` (GSE checks + `RegisterWithGSE` on `PLAYER_LOGIN`), `Sequences.lua` (the four sequences + `JJJ_AutoTarget` variable as a COLLECTION, 255-char validation).
+  - Scaffold load **verified in-game** (2026-10-03): "Loaded. GSE 3.3.34 detected."
+  - Sequences pass a Lua 5.1 harness (Python `lupa`, mocked WoW/GSE): syntax, collection shape, variable output in/out of arena, per-step lengths. **Not yet tested in-game.**
+  - Registration version = `<addon version>-gse<GSEVersion>`, so a GSE update re-imports with a fresh GSEVersion. GSE records the version *before* importing, so a failed import won't retry until the version changes.
 - Reference material is in place: `GSE_Reference.md`, two `DEMO_DIABOLIST` sequence designs, and PvP guides for all three specs.
 - `CLAUDE.md` created.
 - Git repo set up on GitHub. Root duplicates of the destruction guides removed.
@@ -180,11 +183,9 @@ Leave placeholders until confirmed. Level 90 / Midnight abilities differ from ol
 8. ~~**Grimoire: Fel Ravager vs. Grimoire: Imp Lord**~~ Resolved: user has **Grimoire: Imp Lord** (in-game). Existing `DEMO_DIABOLIST` lines casting Fel Ravager must change to Imp Lord.
 
 ### Next Steps
-1. Load-test the scaffold in-game; expect "Loaded. GSE 3.3.34 detected." on login.
-   - `JJJ_GSE_WARLOCK/` is junction-linked into `D:\Gaming\World of Warcraft\_retail_\Interface\AddOns\` (created 2026-10-03), so edits here apply after `/reload`.
-   - Installed GSE: **3.3.34** (GSEVersion 3334). Other installed packs (`GSE3-izzi_Warlock`, etc.) call `GSE.RegisterAddon` and are a real-world reference.
-2. Encode `Sequence_Design.md` v1 as Lua tables (schema in GSE Integration Reference), stamp `GSEVersion`, ship as a COLLECTION via `GSE.RegisterAddon` (variables need `objectType = "VARIABLE"` inside the collection, or GSE treats them as sequences).
-3. Test in-game: import, arena/non-arena auto-target, re-summon, per-step char counts.
+1. In-game test of sequence import: `/reload`, expect "Installed JJJ_ST, JJJ_BURST, JJJ_AOE, JJJ_DEF into GSE 3.3.34." Then check in `/gse`: four sequences under Warlock, variable `JJJ_AutoTarget` present, compiled steps show `/targetenemy` outside arena.
+2. Watch for: compare/merge dialogs on import; the variable not compiling for the sequences (GSE lazy-loads variables listed in `MetaData.Dependencies.Variables`, which should be computed on save, **needs verification**).
+3. Keybind the four sequences (`/gse` → KeyBinding) and test in combat: rotation, re-summon, Felstorm, trinket, defensive escalation.
 
 ---
 

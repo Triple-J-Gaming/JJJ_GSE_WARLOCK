@@ -71,6 +71,37 @@ function ns.CheckGSE()
     return true
 end
 
+-- Hands our COLLECTION to GSE.
+-- The registration version combines our addon version with the GSE version.
+-- GSE re-imports only when this string changes, so a GSE upgrade also
+-- re-imports with a fresh MetaData.GSEVersion. Otherwise GSE would disable our
+-- sequences as "older than installed" after it updates.
+function ns.RegisterWithGSE()
+    local gse_version, gse_version_string = ns.GetInstalledGSEVersion()
+    local addon_version = C_AddOns.GetAddOnMetadata(addon_name, "Version") or "0"
+    local registration_version = addon_version .. "-gse" .. gse_version
+
+    local collection = ns.BuildCollection(gse_version)
+    local problems = ns.ValidateCollection(collection)
+    if #problems > 0 then
+        for _, problem in ipairs(problems) do
+            ns.Print("Not installed: " .. problem)
+        end
+        return
+    end
+
+    -- RegisterAddon returns true when it (re)imported this time.
+    local ok, imported = pcall(_G.GSE.RegisterAddon, addon_name, registration_version,
+        ns.SEQUENCE_NAMES, { collection })
+    if not ok then
+        ns.Print("GSE.RegisterAddon failed: " .. tostring(imported))
+    elseif imported then
+        ns.Print("Installed " .. table.concat(ns.SEQUENCE_NAMES, ", ") .. " into GSE " .. gse_version_string .. ".")
+    else
+        ns.Print("Loaded. Sequences already installed (GSE " .. gse_version_string .. ").")
+    end
+end
+
 local event_frame = CreateFrame("Frame")
 event_frame:RegisterEvent("PLAYER_LOGIN")
 event_frame:SetScript("OnEvent", function(self, event)
@@ -80,9 +111,7 @@ event_frame:SetScript("OnEvent", function(self, event)
         -- which RegisterAddon writes to) are loaded by now.
         ns.gse_ready = ns.CheckGSE()
         if ns.gse_ready then
-            local _, version_string = ns.GetInstalledGSEVersion()
-            ns.Print("Loaded. GSE " .. version_string .. " detected.")
-            -- Sequence registration (GSE.RegisterAddon) is added in the next step.
+            ns.RegisterWithGSE()
         end
     end
 end)

@@ -13,12 +13,13 @@ Outside arena this compiles to `/targetenemy [noharm][dead]`, which picks a new 
 
 ### Damage prefix (top of every Action in buttons 1–3)
 ```
+/cast [nopet] Fel Domination
 =GSE.V.JJJ_AutoTarget()
 /petattack
-/cast [nopet] Fel Domination
 /cast [nopet] Summon Felguard
 ```
-All lines are off the GCD except `Summon Felguard`, which only fires when the pet is gone (it then takes that press's GCD attempt, by design). The prefix is 94 chars as authored and 98 compiled. Longest compiled step per button: ST 127, BURST 142, AOE 141 (limit 255).
+Order is forced by GSE: a macro must **start with `/`** to be treated as macro text, and one starting with `=` is evaluated whole as Lua. So the `=` line can't be first.
+All lines are off the GCD except `Summon Felguard`, which only fires when the pet is gone (it then takes that press's GCD attempt, by design). The prefix is 94 chars as authored and 98 compiled. Longest compiled step per button (measured in a Lua 5.1 harness): ST 127, BURST 144, AOE 141, DEF 31 (limit 255).
 
 ## Button 1 — `JJJ_ST` (single-target damage)
 
