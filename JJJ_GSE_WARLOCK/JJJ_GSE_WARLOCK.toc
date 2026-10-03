@@ -2,7 +2,7 @@
 ## Title: JJJ GSE Warlock
 ## Notes: Demonology Warlock PvP sequences for GSE (Gnome Sequencer Enhanced).
 ## Author: Triple-J-Gaming
-## Version: 0.1.0
+## Version: 0.1.1
 ## Dependencies: GSE, GSE_Utils
 
 Core.lua

@@ -122,6 +122,13 @@ function ns.BuildCollection(gse_version)
             -- without it GSE would treat it as a sequence.
             objectType = "VARIABLE",
             name = AUTO_TARGET_VARIABLE,
+            -- Both shapes, so this works on either GSE:
+            --   * GSE 3.3.34 (installed) reads a flat top-level `funct` and errors
+            --     on nil. That error aborted GSE's whole OOC queue, dropping the
+            --     queued sequence saves.
+            --   * Newer GSE (repo HEAD) reads Versions[active].funct and leaves an
+            --     extra top-level funct alone.
+            funct = AUTO_TARGET_FUNCT,
             MetaData = { Name = AUTO_TARGET_VARIABLE, Default = 1, Author = AUTHOR,
                 Notes = "Returns the auto-target line outside Arena, nothing inside." },
             Versions = { [1] = { funct = AUTO_TARGET_FUNCT } },
