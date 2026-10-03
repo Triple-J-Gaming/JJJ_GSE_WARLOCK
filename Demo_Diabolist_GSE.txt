@@ -1,0 +1,48 @@
+GSE Sequence: DEMO_DIABOLIST  (Demonology Warlock - Diabolist - Midnight)
+Build: CoQAMrNP5kak+EBqLfUa3dMm+uMmxMjmlZGLMzMLDAAAAAAwYZZGzMDbGGmZb2ahmxiZmZsNLzMzwAAzMGzMzMYmZmZmxsBAAGzwYYMLDDYA
+
+In-game: /gse -> New -> Class: Warlock, Spec: Demonology, Name: DEMO_DIABOLIST
+Add the blocks below in order. Step Function for the Loop block = Priority.
+Reset on: Target, Combat. Default spam rate ~250ms.
+
+--------------------------------------------------------------------
+[KeyPress]  (Action block)
+--------------------------------------------------------------------
+/targetenemy [noharm][dead]
+/petattack [@target,harm]
+
+--------------------------------------------------------------------
+[Loop]  Repeat: 1   Step Function: Priority
+--------------------------------------------------------------------
+Action 1:  /cast Call Dreadstalkers
+Action 2:  /cast Hand of Gul'dan
+Action 3:  /cast Summon Vilefiend
+Action 4:  /cast Demonbolt
+Action 5:  /cast Shadow Bolt
+Action 6:  /cast Hand of Gul'dan
+Action 7:  /cast Power Siphon
+Action 8:  /cast Shadow Bolt
+Action 9:  /cast Grimoire: Fel Ravager
+Action 10: /cast Hand of Gul'dan
+Action 11: /cast Summon Demonic Tyrant
+Action 12: /cast Demonbolt
+Action 13: /cast Shadow Bolt
+
+--------------------------------------------------------------------
+[KeyRelease]  (Action block)
+--------------------------------------------------------------------
+/use [combat] 13
+/use [combat] 14
+
+====================================================================
+NOTES
+- Hand of Gul'dan becomes Ruination and Shadow Bolt becomes Infernal Bolt
+  during Diabolist procs, so the same /cast lines fire them automatically.
+- No modifiers: everything fires from the one key. Tyrant sits late in the
+  loop so Dreadstalkers, Vilefiend and a few Hand of Gul'dan imp waves
+  usually land first. It casts whenever the loop reaches it off cooldown.
+- Felguard (Felstorm / Axe Toss) runs on pet autocast; keep Felstorm on auto.
+- Defensives (Unending Resolve, Dark Pact, Mortal Coil, Shadowfury,
+  Demonic Circle/Gateway) stay on their own keybinds.
+- Remove the /use 13 / 14 lines if your trinkets are passive or you
+  want to line them up with Tyrant manually.
