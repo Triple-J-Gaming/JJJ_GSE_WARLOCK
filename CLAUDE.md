@@ -73,6 +73,7 @@ Git repo: `Triple-J-Gaming/JJJ_GSE_WARLOCK` on GitHub. GSE source is not committ
 ### Rules for integration work
 
 - **Verify against the *installed* GSE, not only repo HEAD.** The cloned repo (`cfc7e5cf`) is newer than the user's GSE 3.3.34 (`D:\Gaming\World of Warcraft\_retail_\Interface\AddOns\GSE*`), and they differ. E.g. 3.3.34 variables are flat (`funct` at the top level, no `Versions`). A nil `funct` errors inside GSE's unprotected OOC queue loop and drops every queued item after it (bug hit 2026-10-03, fixed in addon 0.1.1 by shipping both shapes).
+- **Register one encoded entry per sequence, keyed by name.** GSE's Options → Plugins panel builds a **Restore** button per name in `sequencenames`, looks up `sequencetable[name]`, and calls `GSE.DecodeMessage` on it (strings only). Since 2026-10-03 the addon encodes each single-sequence COLLECTION itself with the public `C_EncodingUtil` pipeline (same as `GSE.EncodeMessage`, which is private). Never emit `!GSE3!+`.
 - **Every Action needs lowercase `type = "macro"`.** GSE 3.3.34's editor (`GSE_GUI/Editor.lua` ~5323) treats a typeless action as new and sets `macro = ""`, so the steps showed empty in `/gse` (fixed in addon 0.1.2). The compiler infers the type, but the editor doesn't. Compare new data shapes against the user's own stored sequences: decode `WTF/Account/<id>/SavedVariables/GSE.lua` blobs (base64 → zlib → CBOR).
 
 - **Do not invent API calls.** If a GSE function, table, or event isn't in `GSE_Reference.md` or in GSE source in this folder, flag it as an open question and stop.
@@ -160,7 +161,7 @@ Leave placeholders until confirmed. Level 90 / Midnight abilities differ from ol
 
 - Addon `JJJ_GSE_WARLOCK/`: `.toc` (Interface 120100, deps GSE + GSE_Utils), `Core.lua` (GSE checks + `RegisterWithGSE` on `PLAYER_LOGIN`), `Sequences.lua` (the four sequences + `JJJ_AutoTarget` variable as a COLLECTION, 255-char validation).
   - Scaffold load **verified in-game** (2026-10-03): "Loaded. GSE 3.3.34 detected."
-  - Sequences pass a Lua 5.1 harness (Python `lupa`, mocked WoW/GSE): syntax, collection shape, variable output in/out of arena, per-step lengths. **Not yet tested in-game.**
+  - Sequences pass a Lua 5.1 harness (Python `lupa`, mocked WoW/GSE; `C_EncodingUtil` mocked as CBOR→zlib→base64 and decoded back): syntax, collection shape, variable output in/out of arena, per-step lengths. **Not yet tested in-game.**
   - Registration version = `<addon version>-gse<GSEVersion>`, so a GSE update re-imports with a fresh GSEVersion. GSE records the version *before* importing, so a failed import won't retry until the version changes.
 - Reference material is in place: `GSE_Reference.md`, two `DEMO_DIABOLIST` sequence designs, and PvP guides for all three specs.
 - `CLAUDE.md` created.
@@ -186,10 +187,11 @@ Leave placeholders until confirmed. Level 90 / Midnight abilities differ from ol
 8. ~~**Grimoire: Fel Ravager vs. Grimoire: Imp Lord**~~ Resolved: user has **Grimoire: Imp Lord** (in-game). Existing `DEMO_DIABOLIST` lines casting Fel Ravager must change to Imp Lord.
 
 ### Next Steps
-1. Addon 0.1.2 adds `type = "macro"` to every action (steps showed empty in 0.1.1). Before `/reload`, delete JJJ_ST/BURST/AOE/DEF in `/gse` so the re-import is clean instead of opening compare windows. Addon 0.1.1 had fixed the failed first import (empty variable, no sequences; root cause in Rules for integration work). In-game test: `/reload`, expect "Installed JJJ_ST, JJJ_BURST, JJJ_AOE, JJJ_DEF into GSE 3.3.34." (4 "not specifically designed for this version" warnings appeared on the 0.1.1 import; `MetaData.TOC` is now stamped from `GetBuildInfo()`, which takes effect on the next version bump) Then check in `/gse`: four sequences under Warlock, variable `JJJ_AutoTarget` present, compiled steps show `/targetenemy` outside arena.
-2. **Known for future updates:** bumping the addon version re-imports, and GSE 3.3.34 opens its compare window (merge/replace/ignore) for every sequence that already exists. `RegisterAddon` passes no force-replace, so the user picks **Replace** each time. Consider whether updates need a smoother path.
-3. Watch for: compare/merge dialogs on import; the variable not compiling for the sequences (GSE lazy-loads variables listed in `MetaData.Dependencies.Variables`, which should be computed on save, **needs verification**).
-4. Keybind the four sequences (`/gse` → KeyBinding) and test in combat: rotation, re-summon, Felstorm, trinket, defensive escalation.
+1. **Restore JJJ_AOE** (user deleted it by accident): `/reload` (no version bump, so nothing auto-imports), then GSE Options → Plugins → JJJ GSE Warlock → **Restore** next to JJJ_AOE → confirm on the collection review page. This is also the first in-game test of the per-name encoded entries.
+2. Addon 0.1.2 **verified in-game** (2026-10-03): sequences import with their macro text visible in `/gse`; `JJJ_AutoTarget` shows its code. Still to check: compiled steps show `/targetenemy` outside arena.
+3. **Known for future updates:** bumping the addon version re-imports, and GSE 3.3.34 opens its compare window (merge/replace/ignore) for every sequence that already exists. `RegisterAddon` passes no force-replace, so the user picks **Replace** each time. Consider whether updates need a smoother path.
+4. Watch for: compare/merge dialogs on import; the variable not compiling for the sequences (GSE lazy-loads variables listed in `MetaData.Dependencies.Variables`, which should be computed on save, **needs verification**).
+5. Keybind the four sequences (`/gse` → KeyBinding) and test in combat: rotation, re-summon, Felstorm, trinket, defensive escalation.
 
 ---
 

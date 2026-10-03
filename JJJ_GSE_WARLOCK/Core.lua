@@ -71,7 +71,25 @@ function ns.CheckGSE()
     return true
 end
 
--- Hands our COLLECTION to GSE.
+-- Encodes a table the way GSE.EncodeMessage does (GSE/API/Serialisation.lua,
+-- identical in 3.3.34 and repo HEAD). We can't call GSE's copy because it's
+-- private, but these are public WoW APIs. Never produce "!GSE3!+", which is
+-- gse.tools' sealed format. Returns nil if the API is missing or errors.
+function ns.EncodeForGSE(tab)
+    local util = C_EncodingUtil
+    if type(util) ~= "table" or not util.SerializeCBOR or not util.CompressString or not util.EncodeBase64 then
+        return nil
+    end
+    local ok, encoded = pcall(function()
+        return "!GSE3!" .. util.EncodeBase64(util.CompressString(util.SerializeCBOR(tab)))
+    end)
+    if ok then
+        return encoded
+    end
+    return nil
+end
+
+-- Hands our sequences to GSE.
 -- The registration version combines our addon version with the GSE version.
 -- GSE re-imports only when this string changes, so a GSE upgrade also
 -- re-imports with a fresh MetaData.GSEVersion. Otherwise GSE would disable our
@@ -90,9 +108,22 @@ function ns.RegisterWithGSE()
         return
     end
 
+    -- One encoded entry per sequence, keyed by name (see ns.SplitCollection).
+    -- Strings, not tables: GSE's per-sequence Restore button calls
+    -- GSE.DecodeMessage on the entry, which only accepts a string.
+    local plugin_entries = {}
+    for name, entry in pairs(ns.SplitCollection(collection)) do
+        local encoded = ns.EncodeForGSE(entry)
+        if not encoded then
+            ns.Print("Could not encode " .. name .. " for GSE. Sequences were not installed.")
+            return
+        end
+        plugin_entries[name] = encoded
+    end
+
     -- RegisterAddon returns true when it (re)imported this time.
     local ok, imported = pcall(_G.GSE.RegisterAddon, addon_name, registration_version,
-        ns.SEQUENCE_NAMES, { collection })
+        ns.SEQUENCE_NAMES, plugin_entries)
     if not ok then
         ns.Print("GSE.RegisterAddon failed: " .. tostring(imported))
     elseif imported then

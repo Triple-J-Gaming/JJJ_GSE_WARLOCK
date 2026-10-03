@@ -146,6 +146,23 @@ function ns.BuildCollection(gse_version)
     return { type = "COLLECTION", payload = { Sequences = sequences, Variables = variables } }
 end
 
+-- Splits the collection into one single-sequence COLLECTION per sequence,
+-- keyed by sequence name. GSE's options panel (Plugins → Restore) looks entries
+-- up by name, so each sequence can be restored on its own. Damage sequences
+-- carry the auto-target variable they reference; JJJ_DEF doesn't need it.
+function ns.SplitCollection(collection)
+    local entries = {}
+    local variables = collection.payload.Variables
+    for _, name in ipairs(ns.SEQUENCE_NAMES) do
+        local payload = { Sequences = { [name] = collection.payload.Sequences[name] } }
+        if name ~= "JJJ_DEF" then
+            payload.Variables = variables
+        end
+        entries[name] = { type = "COLLECTION", payload = payload }
+    end
+    return entries
+end
+
 -- Worst-case compiled length of a macro: the `=GSE.V...` line can expand to
 -- AUTO_TARGET_LINE, so measure with that substitution.
 local function CompiledLength(macro)
