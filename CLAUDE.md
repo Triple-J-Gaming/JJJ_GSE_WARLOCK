@@ -52,6 +52,19 @@ Git repo: `Triple-J-Gaming/JJJ_GSE_WARLOCK` on GitHub. GSE source is not committ
   - An entry can be an import string or a table: `{name, sequence}`, or `{type = "COLLECTION", payload = {Sequences = {[name] = seq}, Variables = {[name] = var}, Macros = {...}}}` — so variables can ship inside a COLLECTION.
   - `ImportSerialisedSequence` lives in `GSE_Utils`, so our `.toc` should declare `## Dependencies: GSE, GSE_Utils` to guarantee load order.
 - **Export string format (verified, `GSE/API/Serialisation.lua`):** `"!GSE3!" .. C_EncodingUtil.EncodeBase64(C_EncodingUtil.CompressString(C_EncodingUtil.SerializeCBOR(tab)))`, where a sequence export's `tab` is `{sequenceName, sequence}`. `!GSE3!+` is the sealed gse.tools format — never produce it. Sequence table schema (`MetaData`, `Versions`, …): **needs verification** from `GSE/API/Storage.lua` / `spec/` before generating sequences.
+- **Sequence table schema (verified, `spec/sequencechecker_spec.lua`, `GSE/API/Storage.lua`):**
+  ```lua
+  { MetaData = { Name, SpecID = 266, ClassID = 9, Default = 1, Arena = <ver>, GSEVersion = <n>, Author, Notes },
+    Versions = { [1] = { Actions = { ...blocks... }, InbuiltVariables = {} } } }
+  ```
+  - Blocks: `{Type="Action", macro="/cast X
+/cast Y"}`; `{Type="Loop", Repeat="1", StepFunction=<Priority|Sequential>, ...blocks}`; `{Type="If", Variable="<lua expr>", [1]={...true blocks}, [2]={...false blocks}}`; `Repeat` uses `Interval`; `Pause` uses `Clicks` or `MS`.
+  - **No KeyPress/KeyRelease in GSE 3.** `GSE.CompileTemplate` compiles only `Version.Actions`; KeyPress/KeyRelease appear only as legacy import keys. Lines meant to run on every press (pet attack, re-summon, trinket, auto-target) must go inside each Action's `macro` text. The 255-char budget is per Action macro. `GSE_Reference.md` still describes KeyPress/KeyRelease and needs correcting.
+  - Old sequences are blocked. Import rejects `GSEVersion <= 3200` or `> installed`, and on load (retail) GSE **disables** sequences whose `GSEVersion < floor(installed/100)*100`. Our addon must stamp `MetaData.GSEVersion` from `C_AddOns.GetAddOnMetadata("GSE","Version")` parsed as `major*1000 + minor*100 + patch` (`GSE.ParseVersion`).
+  - Ship via `RegisterAddon` as a **COLLECTION** so imports run with `skipDialogs`. A single sequence with no checksum triggers GSE's integrity confirm dialog.
+- **Macro-text Lua evaluation (verified, `GSE.CompileMacroText`):** any macro line starting with `=` is evaluated as Lua at compile time, in an env where `GSE` is the private namespace (so `GSE.inArena`, `GSE.PVPFlag`, `GSE.V.*` work). The result replaces the line; empty lines are dropped. Recompile happens on zone/instance change.
+- **Arena flag (verified, `GSE/API/Events.lua`):** `GSE.inArena = (instanceType == "arena")`. Sequences can also pick a version per context natively: `MetaData.Arena = <version index>` (`GSE.GetActiveVersion`).
+- **GSE Variables (verified):** `{ MetaData = {Name, Default=1}, Versions = { [1] = { funct = "function() ... end" } } }`. Compiled as `GSE.V[name] = loadstring("return "..funct)()`; reference in macros as `=GSE.V.Name()` or in an If block's `Variable`.
 - **`.toc` (verified):** GSE ships `## Interface: 11509, 16001, 20506, 50504, 120007, 120100` — **12.1 = `120100`**.
 - **Outdated — never use:** GS-Core addon packs, `GSImportLegacyMacroCollections`, `GSDisableSequence`, `Interface: 70100` (Legion-era, not in GSE 3).
 
@@ -106,16 +119,16 @@ Leave placeholders until confirmed. Level 90 / Midnight abilities differ from ol
   - *Warlock:* Axe Toss (Command Demon), Blight of Tongues, Create Healthstone, Create Soulwell, Curse of Exhaustion, Curse of Weakness, Dark Pact, Demonic Circle (+ Teleport), Demonic Gateway, Drain Life, Eye of Kilrogg, Fear, Fel Domination, Howl of Terror, Mortal Coil, Ritual of Doom, Ritual of Summoning, Shadow Bolt, Soulburn, Soulstone, Subjugate Demon, Summon Demon, Unending Breath, Unending Resolve.
   - **Not castable:** Summon Vilefiend, Implosion (no Implosion means the AoE button needs a different spender, so design from this list only). Page 2 of the spellbook (not seen) may hold more.
 - **Pets:**
-  - **Main pet: Felguard** (Summon Felguard talent, cast via *Summon Demon*). Summon it before combat. Its *Command Demon* ability is **Axe Toss** (stun), which stays on a manual key as CC. **Auto re-summon (decided):** every damage button's KeyPress carries
+  - **Main pet: Felguard** (Summon Felguard talent, cast via *Summon Demon*). Summon it before combat. Its *Command Demon* ability is **Axe Toss** (stun), which stays on a manual key as CC. **Auto re-summon (decided):** every damage button's Action macros start with (GSE 3 has no KeyPress, see GSE Integration Reference)
     ```
     /cast [nopet] Fel Domination
     /cast [nopet] Summon Felguard
     ```
-    With a pet alive, both lines fail their `[nopet]` check and the step's normal action runs. With no pet, Fel Domination fires if it's off cooldown (otherwise the line silently fails), then the summon takes that press's GCD attempt. Budget: ~62 chars of the 255.
+    With a pet alive, both lines fail their `[nopet]` check and the step's normal action runs. With no pet, Fel Domination fires if it's off cooldown (otherwise the line silently fails), then the summon takes that press's GCD attempt. Budget: ~62 chars of the 255 per Action.
     - **Verified in-game (2026-10-03):** Fel Domination is off the GCD; `/cast Summon Felguard` works by name.
     - **Decided:** the summon is **not** gated on Fel Domination. If it's on cooldown, the button still starts the slow (full cast time) summon.
   - **Grimoire: Imp Lord** is an **in-combat** temporary summon on cooldown. It belongs in the Burst button, not as a resting pet.
-  - Felguard pet-bar abilities (e.g. Felstorm) and whether they can be cast from a GSE line: **needs verification** in-game.
+  - **Felstorm** works from a macro as **`/use Felstorm`** (user verified in-game; use that exact form, not `/cast`). Use it in the AoE button.
 - **Key PvP Abilities:** [LIST PRIORITY ABILITIES AND WHY]
 - **Trinkets** (Wowhead tooltips, ilvl 331):
   - Venomous Aspirant's Badge of Ferocity (item 270559): **on-use**, +461 primary stat for 15s, 1 min cooldown. Equipped in **slot 13** (top), so sequences use `/use 13`.
@@ -128,7 +141,7 @@ Leave placeholders until confirmed. Level 90 / Midnight abilities differ from ol
     4. **Defensive**: cycles defensive tools (Dark Pact, healthstone, etc.).
   - Other CC (Nether Ward, Call Fel Lord, Mortal Coil, Howl of Terror, Fear, Axe Toss) stays on manual keys unless the user decides otherwise.
   - **Auto-target outside Arena only.** Include `/targetenemy` (and `/petattack`) everywhere except arenas, where the user picks targets manually.
-    - Planned implementation: a GSE **If** block driven by a GSE Variable that returns true when `select(2, IsInInstance()) == "arena"`. If blocks re-evaluate on instance change (`GSE_Reference.md` §If), so entering or leaving an arena flips the branch. Exact GSE Variable format and whether If accepts a boolean-returning Lua variable: **needs verification** in GSE source.
+    - **Implementation (decided, verified against source):** ship a GSE Variable `JJJ_AutoTarget` with `funct = "function() if GSE.inArena then return '' end return '/targetenemy [noharm][dead]' end"`, and start each damage Action's macro with the line `=GSE.V.JJJ_AutoTarget()`. Outside arena it compiles to the targeting line; in arena the line disappears. Updates on zone/instance change. No duplicated If branches or extra versions needed. The exact `/targetenemy` conditionals are still a design choice.
 - **Keybinds:** No custom keybinds yet; default WoW binds only. Sequence key, modifier usage and press rate: not chosen yet.
 - **Current GSE Sequences:** [LIST SEQUENCES TO IMPORT OR BUILD UPON]
   - *In folder:* `DEMO_DIABOLIST` in two designs (`.lua` 5-action, `.txt` 13-action).
@@ -158,15 +171,15 @@ Leave placeholders until confirmed. Level 90 / Midnight abilities differ from ol
 1. ~~**Addon name**~~ Resolved: `JJJ_GSE_WARLOCK`.
 2. ~~**Spec and hero tree**~~ Resolved: Demonology Diabolist (user's loadout string).
 3. ~~**How can a third-party addon create or modify GSE sequences/variables?**~~ Resolved: only via `GSE.RegisterAddon` (see GSE Integration Reference). Imports run on first load/version change; collisions prompt the user.
-4. ~~**GSE import/export string format**~~ Resolved: `!GSE3!` + Base64(Compress(CBOR({name, sequence}))). Still open: the sequence table schema (`MetaData`, `Versions`, block layout) — read `GSE/API/Storage.lua` and `spec/` before generating sequences.
+4. ~~**GSE import/export string format and sequence schema**~~ Resolved: `!GSE3!` + Base64(Compress(CBOR({name, sequence}))); schema, GSEVersion gate and COLLECTION shipping are in GSE Integration Reference.
 5. ~~**`.toc` details**~~ Resolved: `## Interface: 120100`; `## Dependencies: GSE, GSE_Utils`.
 6. ~~**Summon Vilefiend in Midnight**~~ Resolved: not in the user's spellbook (screenshot 2026-10-03), so it's passive or merged. Remove every `/cast Summon Vilefiend` line from the sequence designs.
 7. ~~**Single-Button Assistant**~~ Resolved: user confirms it works in PvP and inside GSE.
 8. ~~**Grimoire: Fel Ravager vs. Grimoire: Imp Lord**~~ Resolved: user has **Grimoire: Imp Lord** (in-game). Existing `DEMO_DIABOLIST` lines casting Fel Ravager must change to Imp Lord.
 
 ### Next Steps
-1. Verify the GSE sequence table schema and Variable format (Open Question 4 remainder + arena If-block variable).
-2. Design the four sequences (spell priority per button, 255-char step budget). Needs in-game answers to Open Questions 6–8 first.
+1. Correct `GSE_Reference.md` (remove KeyPress/KeyRelease; document `=` Lua lines, GSEVersion gate, Arena context).
+2. Design the four sequences (spell priority per button, 255-char step budget).
 3. Scaffold the addon folder + `.toc` + core Lua file with GSE presence check.
 
 ---
