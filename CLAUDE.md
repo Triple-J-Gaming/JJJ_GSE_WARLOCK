@@ -26,6 +26,7 @@ Persistent project brief. Read this first every session; update **Project State*
 | `Demonology_Warlock_PvP_Guide.md` | Demonology PvP summary (Icy Veins, 12.1). |
 | `affliction-warlock/` | Affliction PvP summary (12.1). |
 | `Sequence_Design.md` | **Finalized v1** design of the four buttons (ST, BURST, AOE, DEF), with char budgets. Source for the addon's sequence data. |
+| `JJJ_GSE_WARLOCK/` | The addon. `Core.lua` = namespace, chat print, GSE checks, version parsing. |
 | `destruction-warlock/` | Destruction PvP + PvE guide set (12.1), including PvP macros and talents. |
 
 Git repo: `Triple-J-Gaming/JJJ_GSE_WARLOCK` on GitHub. GSE source is not committed here; in cloud sessions it is cloned read-only to `/home/user/timothyluke/gse-advanced-macro-compiler` (GSE-Advanced-Macro-Compiler).
@@ -154,7 +155,7 @@ Leave placeholders until confirmed. Level 90 / Midnight abilities differ from ol
 ### Current Status
 *Last updated: 2026-10-03 (session 1).*
 
-- No addon code exists yet. No addon folder, `.toc`, or Lua files.
+- Addon scaffold exists: `JJJ_GSE_WARLOCK/` with `.toc` (Interface 120100, deps GSE + GSE_Utils) and `Core.lua` (GSE presence/version check on `PLAYER_LOGIN`). Not yet tested in-game; no Lua toolchain on this machine to syntax-check.
 - Reference material is in place: `GSE_Reference.md`, two `DEMO_DIABOLIST` sequence designs, and PvP guides for all three specs.
 - `CLAUDE.md` created.
 - Git repo set up on GitHub. Root duplicates of the destruction guides removed.
@@ -179,8 +180,8 @@ Leave placeholders until confirmed. Level 90 / Midnight abilities differ from ol
 8. ~~**Grimoire: Fel Ravager vs. Grimoire: Imp Lord**~~ Resolved: user has **Grimoire: Imp Lord** (in-game). Existing `DEMO_DIABOLIST` lines casting Fel Ravager must change to Imp Lord.
 
 ### Next Steps
-1. Scaffold `JJJ_GSE_WARLOCK/` (`.toc` with `## Interface: 120100`, `## Dependencies: GSE, GSE_Utils`) + core Lua with a GSE presence check.
-2. Encode `Sequence_Design.md` v1 as Lua tables (schema in GSE Integration Reference), stamp `GSEVersion`, ship as a COLLECTION via `GSE.RegisterAddon`.
+1. Load-test the scaffold in-game (link `JJJ_GSE_WARLOCK/` into `World of Warcraft/_retail_/Interface/AddOns/`); expect "Loaded. GSE x.y.z detected." on login.
+2. Encode `Sequence_Design.md` v1 as Lua tables (schema in GSE Integration Reference), stamp `GSEVersion`, ship as a COLLECTION via `GSE.RegisterAddon` (variables need `objectType = "VARIABLE"` inside the collection, or GSE treats them as sequences).
 3. Test in-game: import, arena/non-arena auto-target, re-summon, per-step char counts.
 
 ---
